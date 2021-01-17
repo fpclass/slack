@@ -1,0 +1,23 @@
+name:                slack
+version:             0.1.0.0
+github:              fpclass/slack
+license:             MIT
+author:              Michael B. Gale <m.gale@warwick.ac.uk>
+maintainer:          Michael B. Gale <m.gale@warwick.ac.uk>
+copyright:           Copyright (c) Michael B. Gale
+
+dependencies:
+- base
+- servant
+- servant-client
+
+default-extensions:
+- OverloadedStrings
+- DataKinds
+- TypeOperators
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -Wall
+  - -Werror=missing-fields

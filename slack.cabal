@@ -1,0 +1,40 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: bf65022d1c9bb0226f89edbf72053556afef794ee4f0159b229f8222b5304596
+
+name:           slack
+version:        0.1.0.0
+homepage:       https://github.com/fpclass/slack#readme
+bug-reports:    https://github.com/fpclass/slack/issues
+author:         Michael B. Gale <m.gale@warwick.ac.uk>
+maintainer:     Michael B. Gale <m.gale@warwick.ac.uk>
+copyright:      Copyright (c) Michael B. Gale
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/fpclass/slack
+
+library
+  exposed-modules:
+      Slack
+      Slack.API
+      Slack.API.Admin
+      Slack.API.Auth
+  other-modules:
+      Paths_slack
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings DataKinds TypeOperators
+  ghc-options: -Wall -Werror=missing-fields
+  build-depends:
+      base
+    , servant
+    , servant-client
+  default-language: Haskell2010
