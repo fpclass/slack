@@ -7,23 +7,35 @@
 
 module Slack.API (
     SlackAPI,
-    slackApi
+    slackApi,
+    Slack,
+    listUsers
 ) where
 
 -------------------------------------------------------------------------------
 
+import Control.Monad.Reader
+
+import Data.Text
 import Data.Proxy
 
-import Servant.API
 import Servant.Client
+import Servant.Client.Core 
 
-import Slack.API.Admin
+import Slack.Response
+import Slack.API.Auth
+import Slack.API.User
+import Slack.Types.User
+
+-------------------------------------------------------------------------------
+
+type Slack = ReaderT Text ClientM
 
 -------------------------------------------------------------------------------
 
 -- | The Slack API as a type.
 type SlackAPI
-    = AdminAPI
+    = UsersAPI
 
 -- | A `Proxy` for `SlackAPI`.
 slackApi :: Proxy SlackAPI
@@ -31,6 +43,16 @@ slackApi = Proxy
 
 -------------------------------------------------------------------------------
 
-adminListUsers = client slackApi
+userApi = client slackApi
+
+_listUsers = userApi
+
+-------------------------------------------------------------------------------
+
+-- | `listUsers` @req@ retrieves users in the workspace.
+listUsers :: UsersListReq -> Slack (SlackResponse [SlackUser])
+listUsers req = do
+    token <- flip mkAuthenticatedRequest authenticateReq <$> ask
+    lift $ _listUsers token req
 
 -------------------------------------------------------------------------------

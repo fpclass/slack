@@ -7,13 +7,32 @@ maintainer:          Michael B. Gale <m.gale@warwick.ac.uk>
 copyright:           Copyright (c) Michael B. Gale
 
 dependencies:
+- aeson
 - base
+- data-default-class
+- deriving-aeson
+- http-api-data
+- http-client
+- http-client-tls
+- mtl
 - servant
 - servant-client
+- servant-client-core
+- text
 
 default-extensions:
-- OverloadedStrings
+- AllowAmbiguousTypes
 - DataKinds
+- DeriveGeneric
+- DerivingVia
+- FlexibleInstances
+- OverloadedLists
+- OverloadedStrings
+- PolyKinds
+- RecordWildCards
+- ScopedTypeVariables
+- TypeApplications
+- TypeFamilies
 - TypeOperators
 
 library:

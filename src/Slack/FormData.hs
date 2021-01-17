@@ -5,39 +5,23 @@
 -- LICENSE file in the root directory of this source tree.                   --
 -------------------------------------------------------------------------------
 
-module Slack (
-    module Slack.API,
-    SlackConfig(..),
-    withSlackClient
-) where 
+module Slack.FormData (
+    module Web.FormUrlEncoded,
+    optionalAttr
+) where
 
 -------------------------------------------------------------------------------
 
-import Control.Monad.Reader
+import Data.Text 
 
-import Data.Text
+import Servant.API
 
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-
-import Servant.Client
-
-import Slack.API
+import Web.FormUrlEncoded
 
 -------------------------------------------------------------------------------
 
-data SlackConfig = MkSlackConfig {
-    slackConfigToken :: Text
-} deriving (Eq, Show)
-
-slackApiUrl :: BaseUrl
-slackApiUrl = BaseUrl Https "slack.com" 443 "/api"
-
-withSlackClient :: Show a => SlackConfig -> Slack a -> IO (Either ClientError a)
-withSlackClient MkSlackConfig{..} cont = do
-    manager <- newManager tlsManagerSettings
-    let env = ClientEnv manager slackApiUrl Nothing
-    r <- runClientM (runReaderT cont slackConfigToken) env
-    pure r
+optionalAttr :: ToHttpApiData a => Text -> Maybe a -> Form
+optionalAttr _    Nothing  = []
+optionalAttr name (Just x) = [ (name, toQueryParam x) ]
 
 -------------------------------------------------------------------------------

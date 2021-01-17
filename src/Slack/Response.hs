@@ -5,39 +5,40 @@
 -- LICENSE file in the root directory of this source tree.                   --
 -------------------------------------------------------------------------------
 
-module Slack (
-    module Slack.API,
-    SlackConfig(..),
-    withSlackClient
-) where 
+module Slack.Response ( 
+    ResponseMetadata(..),
+    SlackResponse(..) 
+) where
 
 -------------------------------------------------------------------------------
-
-import Control.Monad.Reader
 
 import Data.Text
 
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-
-import Servant.Client
-
-import Slack.API
+import Slack.JSON
 
 -------------------------------------------------------------------------------
 
-data SlackConfig = MkSlackConfig {
-    slackConfigToken :: Text
-} deriving (Eq, Show)
+data ResponseMetadata = MkResponseMetadata {
+    metaNextCursor :: Text
+} deriving (Eq, Show, Generic)
+  deriving (ToJSON, FromJSON)
+  via SlackJSON "meta" ResponseMetadata
 
-slackApiUrl :: BaseUrl
-slackApiUrl = BaseUrl Https "slack.com" 443 "/api"
+data SlackResponse a 
+    = Ok {
+        responsePayload :: a,
+        responseMetadata :: Maybe ResponseMetadata
+    } 
+    | NotOk 
+    deriving (Eq, Show, Generic)
 
-withSlackClient :: Show a => SlackConfig -> Slack a -> IO (Either ClientError a)
-withSlackClient MkSlackConfig{..} cont = do
-    manager <- newManager tlsManagerSettings
-    let env = ClientEnv manager slackApiUrl Nothing
-    r <- runClientM (runReaderT cont slackConfigToken) env
-    pure r
+instance (HasPayload a, FromJSON a) => FromJSON (SlackResponse a) where
+    parseJSON = withObject "SlackResponse" $ \obj -> do
+        ok <- obj .: "ok"
+
+        if ok
+        then Ok <$> payload obj
+                <*> obj .:? "response_metadata"
+        else pure NotOk
 
 -------------------------------------------------------------------------------
