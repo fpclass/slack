@@ -9,7 +9,8 @@ module Slack.API (
     SlackAPI,
     slackApi,
     Slack,
-    listUsers
+    listUsers,
+    getReactions
 ) where
 
 -------------------------------------------------------------------------------
@@ -19,12 +20,15 @@ import Control.Monad.Reader
 import Data.Text
 import Data.Proxy
 
+import Servant.API
 import Servant.Client
 import Servant.Client.Core 
 
 import Slack.Response
 import Slack.API.Auth
 import Slack.API.User
+import Slack.API.Reactions
+import Slack.Types.Message
 import Slack.Types.User
 
 -------------------------------------------------------------------------------
@@ -36,6 +40,7 @@ type Slack = ReaderT Text ClientM
 -- | The Slack API as a type.
 type SlackAPI
     = UsersAPI
+ :<|> ReactionsAPI
 
 -- | A `Proxy` for `SlackAPI`.
 slackApi :: Proxy SlackAPI
@@ -43,16 +48,28 @@ slackApi = Proxy
 
 -------------------------------------------------------------------------------
 
-userApi = client slackApi
+userApi :<|> reactionsApi = client slackApi
 
 _listUsers = userApi
 
+_getReactions = reactionsApi
+
 -------------------------------------------------------------------------------
+
+withToken 
+    :: (AuthenticatedRequest (AuthProtect "token") -> ClientM a) 
+    -> Slack a
+withToken cont = do 
+    token <- flip mkAuthenticatedRequest authenticateReq <$> ask
+    lift $ cont token
 
 -- | `listUsers` @req@ retrieves users in the workspace.
 listUsers :: UsersListReq -> Slack (SlackResponse [SlackUser])
-listUsers req = do
-    token <- flip mkAuthenticatedRequest authenticateReq <$> ask
-    lift $ _listUsers token req
+listUsers req = withToken $ \token -> _listUsers token req
+
+-- | `getReactions` @req@ retrieves a `SlackMessage`, including information
+-- about which users reacted to it.
+getReactions :: ReactionsGetReq -> Slack (SlackResponse SlackMessage)
+getReactions req = withToken $ \token -> _getReactions token req
 
 -------------------------------------------------------------------------------
