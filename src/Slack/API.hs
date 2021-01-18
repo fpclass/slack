@@ -9,8 +9,12 @@ module Slack.API (
     SlackAPI,
     slackApi,
     Slack,
+    -- * Users API
     listUsers,
-    getReactions
+    -- * Reactions API
+    getReactions,
+    -- * Chat API
+    postMessage
 ) where
 
 -------------------------------------------------------------------------------
@@ -26,6 +30,7 @@ import Servant.Client.Core
 
 import Slack.Response
 import Slack.API.Auth
+import Slack.API.Chat
 import Slack.API.User
 import Slack.API.Reactions
 import Slack.Types.Message
@@ -41,6 +46,7 @@ type Slack = ReaderT Text ClientM
 type SlackAPI
     = UsersAPI
  :<|> ReactionsAPI
+ :<|> ChatAPI
 
 -- | A `Proxy` for `SlackAPI`.
 slackApi :: Proxy SlackAPI
@@ -48,11 +54,13 @@ slackApi = Proxy
 
 -------------------------------------------------------------------------------
 
-userApi :<|> reactionsApi = client slackApi
+userApi :<|> reactionsApi :<|> chatApi = client slackApi
 
 _listUsers = userApi
 
 _getReactions = reactionsApi
+
+_postMessage = chatApi
 
 -------------------------------------------------------------------------------
 
@@ -71,5 +79,10 @@ listUsers req = withToken $ \token -> _listUsers token req
 -- about which users reacted to it.
 getReactions :: ReactionsGetReq -> Slack (SlackResponse SlackMessage)
 getReactions req = withToken $ \token -> _getReactions token req
+
+-- | `postMessage` @req@ posts a message to a conversation and returns
+-- information about the message that was created.
+postMessage :: ChatPostMessageReq -> Slack (SlackResponse SlackMessage)
+postMessage req = withToken $ \token -> _postMessage token req
 
 -------------------------------------------------------------------------------

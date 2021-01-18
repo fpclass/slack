@@ -5,36 +5,37 @@
 -- LICENSE file in the root directory of this source tree.                   --
 -------------------------------------------------------------------------------
 
-module Slack.Types.Message (
-    Reaction(..),
-    SlackMessage(..)
+module Slack.API.Chat (
+    ChatAPI,
+    ChatPostMessageReq(..)
 ) where
 
 -------------------------------------------------------------------------------
 
 import Data.Text
 
+import Deriving.Aeson
+
+import Servant.API
+
 import Slack.JSON
+import Slack.Response
+import Slack.API.Auth
+import Slack.Types.Message
 
 -------------------------------------------------------------------------------
 
-data Reaction = MkReaction {
-    reactionName :: Text,
-    reactionUsers :: [Text],
-    reactionCount :: Int
+data ChatPostMessageReq = MkChatPostMessageReq {
+    postMessageChannel :: Text,
+    postMessageText :: Text
 } deriving (Eq, Show, Generic)
   deriving (ToJSON, FromJSON)
-  via SlackJSON "reaction" Reaction
+  via SlackJSON "postMessage" ChatPostMessageReq
 
-data SlackMessage = MkSlackMessage {
-    messageType :: Text,
-    messageText :: Text,
-    messageReactions :: Maybe [Reaction]
-} deriving (Eq, Show, Generic)
-  deriving (ToJSON, FromJSON)
-  via SlackJSON "message" SlackMessage
-
-instance HasPayload SlackMessage where
-    payloadFieldName = "message"
+type ChatAPI
+    = SlackAuth :>
+      "chat.postMessage" :>
+      ReqBody '[JSON] ChatPostMessageReq :>
+      Post '[JSON] (SlackResponse SlackMessage)
 
 -------------------------------------------------------------------------------
